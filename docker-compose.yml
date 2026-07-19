@@ -8,9 +8,20 @@ services:
       POSTGRES_PASSWORD: vape_pass
       POSTGRES_DB: vape_shop
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+
+  bot:
+    build: .
+    container_name: vape_shop_bot
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql+psycopg2://vape_user:vape_pass@postgres:5432/vape_shop
 
 volumes:
   postgres_data:
