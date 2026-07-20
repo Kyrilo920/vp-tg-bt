@@ -53,9 +53,6 @@ class AdminNotifier:
         for item in order.items:
             lines.append(f"{item.flavor}: {item.stock_after} шт")
 
-        if order.stickerpack:
-            lines.append(f"\n🎁 Стикерпак: {order.stickerpack}")
-
         if order.comment:
             lines.append(f"\nКомментарий: {order.comment}")
 

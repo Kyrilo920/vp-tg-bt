@@ -57,8 +57,6 @@ class Order(Base):
     order_status: Mapped[OrderStatus] = mapped_column(String(30), default=OrderStatus.NEW)
     payment_status: Mapped[PaymentStatus] = mapped_column(String(30), default=PaymentStatus.PENDING)
 
-    stickerpack: Mapped[str | None] = mapped_column(String(100), nullable=True)
-
     items: Mapped[list["OrderItem"]] = relationship(
         back_populates="order", cascade="all, delete-orphan", lazy="selectin"
     )

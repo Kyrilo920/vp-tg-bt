@@ -6,7 +6,6 @@ class CartStates(StatesGroup):
 
 
 class CheckoutStates(StatesGroup):
-    stickerpack = State()
     delivery_type = State()
     client_name = State()
     phone = State()

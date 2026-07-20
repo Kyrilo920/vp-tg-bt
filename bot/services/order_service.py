@@ -32,7 +32,6 @@ class OrderService:
         zip_code: str | None = None,
         pickup_time: str | None = None,
         comment: str | None = None,
-        stickerpack: str | None = None,
     ) -> Order:
         if cart.is_empty:
             raise ValueError("Cart is empty")
@@ -60,7 +59,6 @@ class OrderService:
             zip_code=zip_code,
             pickup_time=pickup_time,
             comment=comment,
-            stickerpack=stickerpack,
             items_sum=items_sum,
             delivery_price=delivery_price,
             total_sum=total_sum,

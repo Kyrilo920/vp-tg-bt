@@ -17,7 +17,6 @@ from bot.notification.admin_notifier import AdminNotifier
 from bot.repositories.finance_repo import FinanceRepository
 from bot.repositories.order_repo import OrderRepository
 from bot.repositories.product_repo import ProductRepository
-from bot.repositories.stickerpack_repo import StickerpackRepository
 from bot.services.delivery import DeliveryCalculator
 from bot.services.order_service import OrderService
 from bot.states.cart_states import AdminStates, CartStates, CheckoutStates
@@ -70,9 +69,6 @@ def render_cart_text(cart: Cart, lang: Language | None = None) -> str:
     lines.append(f"{t.get('items_sum', lang)}: <b>{cart.items_sum} CHF</b>")
     lines.append(f"{t.get('delivery', lang)}: <b>{delivery_str}</b>")
     lines.append(f"{t.get('total', lang)}: <b>{total} CHF</b>")
-
-    if cart.total_quantity >= 5:
-        lines.append(f"\n{t.get('bonus_available', lang)}")
 
     return "\n".join(lines)
 
@@ -376,26 +372,6 @@ def checkout_start(callback: CallbackQuery) -> None:
         bot.answer_callback_query(callback.id, "Корзина пуста", show_alert=True)
         return
 
-    # если заказ от 5 штук — сначала выбираем стикерпак
-    if cart.total_quantity >= 5:
-        with database.session() as session:
-            packs = StickerpackRepository(session).get_all()
-
-        bot.set_state(callback.from_user.id, CheckoutStates.stickerpack, callback.message.chat.id)
-        safe_edit_message(
-            chat_id=callback.message.chat.id,
-            message_id=callback.message.message_id,
-            text=(
-                "🎁 <b>Вам доступен бонусный стикерпак!</b>\n\n"
-                "Нажмите «👀» чтобы посмотреть, «Выбрать» — чтобы взять его."
-            ),
-            parse_mode="HTML",
-            reply_markup=ClientKeyboards.stickerpack_choice(packs, user.language),
-        )
-        bot.answer_callback_query(callback.id)
-        return
-
-    # иначе сразу переходим к выбору доставки
     bot.set_state(callback.from_user.id, CheckoutStates.delivery_type, callback.message.chat.id)
     safe_edit_message(
         chat_id=callback.message.chat.id,
@@ -404,27 +380,6 @@ def checkout_start(callback: CallbackQuery) -> None:
         reply_markup=ClientKeyboards.delivery_choice(user.language),
     )
     bot.answer_callback_query(callback.id)
-
-
-@bot.callback_query_handler(func=lambda c: c.data.startswith("stpack:"))
-def choose_stickerpack(callback: CallbackQuery) -> None:
-    user = get_user(callback.from_user.id, callback.from_user.username)
-    code = callback.data.split(":")[1]
-
-    with bot.retrieve_data(callback.from_user.id, callback.message.chat.id) as data:
-        data["stickerpack"] = None if code == "skip" else code
-
-    bot.set_state(callback.from_user.id, CheckoutStates.delivery_type, callback.message.chat.id)
-    safe_edit_message(
-        chat_id=callback.message.chat.id,
-        message_id=callback.message.message_id,
-        text="Как получите заказ?",
-        reply_markup=ClientKeyboards.delivery_choice(user.language),
-    )
-    bot.answer_callback_query(
-        callback.id,
-        "Стикерпак выбран" if code != "skip" else "Пропущено",
-    )
 
 
 @bot.callback_query_handler(func=lambda c: c.data.startswith("dtype:"))
@@ -591,7 +546,6 @@ def confirm_order(callback: CallbackQuery) -> None:
         zip_code = data.get("zip_code")
         pickup_time = data.get("pickup_time")
         comment = data.get("comment")
-        stickerpack_code = data.get("stickerpack")
 
     try:
         with database.session() as session:
@@ -608,14 +562,9 @@ def confirm_order(callback: CallbackQuery) -> None:
                 zip_code=zip_code,
                 pickup_time=pickup_time,
                 comment=comment,
-                stickerpack=stickerpack_code,
             )
             notifier.notify_new_order(order)
             order_id = order.id
-
-            if stickerpack_code:
-                StickerpackRepository(session).increment_selected(stickerpack_code)
-                session.commit()
     except ValueError as e:
         bot.answer_callback_query(callback.id, f"Ошибка: {e}", show_alert=True)
         return
@@ -747,33 +696,6 @@ def admin_flavors(callback: CallbackQuery) -> None:
     bot.answer_callback_query(callback.id)
 
 
-@bot.callback_query_handler(func=lambda c: c.data == "admin:stickers", is_admin=True)
-def admin_stickers(callback: CallbackQuery) -> None:
-    with database.session() as session:
-        stats = StickerpackRepository(session).stats()
-
-    total = sum(count for _, count in stats)
-    if total == 0:
-        text = "🎁 <b>Отчёт по стикерпакам</b>\n\nПока никто не выбрал стикерпак."
-    else:
-        lines = ["🎁 <b>Отчёт по стикерпакам</b>\n"]
-        for name, count in stats:
-            pct = (count / total) * 100
-            lines.append(f"{name} — {count} выборов / {pct:.1f}%")
-        top_pack = stats[0][0]
-        lines.append(f"\n🏆 Самый популярный: <b>{top_pack}</b>")
-        text = "\n".join(lines)
-
-    safe_edit_message(
-        chat_id=callback.message.chat.id,
-        message_id=callback.message.message_id,
-        text=text,
-        parse_mode="HTML",
-        reply_markup=AdminKeyboards.panel(),
-    )
-    bot.answer_callback_query(callback.id)
-
-
 @bot.callback_query_handler(func=lambda c: c.data == "admin:orders", is_admin=True)
 def admin_orders(callback: CallbackQuery) -> None:
     with database.session() as session:
@@ -825,8 +747,6 @@ def admin_order_detail(callback: CallbackQuery) -> None:
         lines.append(f"\nСумма: {order.total_sum} CHF")
         lines.append(f"Статус заказа: <b>{order_status.value}</b>")
         lines.append(f"Статус оплаты: <b>{payment_status.value}</b>")
-        if order.stickerpack:
-            lines.append(f"Стикерпак: {order.stickerpack}")
 
         lines.append("\n<b>Позиции:</b>")
         for item in order.items:
@@ -1079,7 +999,6 @@ def admin_full_stats(message: Message) -> None:
         total_orders = order_repo.count_all()
         status_counts = order_repo.status_counts()
         flavor_stats = order_repo.flavor_stats()
-        sticker_stats = StickerpackRepository(session).stats()
         finance = FinanceRepository(session).summary()
         products = ProductRepository(session).get_all()
 
@@ -1102,16 +1021,6 @@ def admin_full_stats(message: Message) -> None:
             stock_left = stock_by_flavor.get(flavor, "?")
             lines.append(f"{flavor} — {qty} шт / {pct:.1f}% (остаток: {stock_left})")
         lines.append(f"🏆 Самый популярный: <b>{flavor_stats[0][0]}</b>")
-
-    lines.append("\n🎁 <b>Отчёт по стикерпакам</b>")
-    total_stickers = sum(count for _, count in sticker_stats)
-    if total_stickers == 0:
-        lines.append("Пока никто не выбрал стикерпак.")
-    else:
-        for name, count in sticker_stats:
-            pct = (count / total_stickers) * 100
-            lines.append(f"{name} — {count} выборов / {pct:.1f}%")
-        lines.append(f"🏆 Самый популярный: <b>{sticker_stats[0][0]}</b>")
 
     lines.append("\n💰 <b>Финансы</b>")
     lines.append(f"Оплаченных заказов: <b>{finance['orders_count']}</b>")

@@ -10,7 +10,6 @@ class AdminKeyboards:
         kb.add(InlineKeyboardButton("📋 Новые заказы", callback_data="admin:orders"))
         kb.add(InlineKeyboardButton("📦 Остатки", callback_data="admin:stock"))
         kb.add(InlineKeyboardButton("🍬 Отчёт по вкусам", callback_data="admin:flavors"))
-        kb.add(InlineKeyboardButton("🎁 Отчёт по стикерам", callback_data="admin:stickers"))
         kb.add(InlineKeyboardButton("💰 Финансы", callback_data="admin:finance"))
         kb.add(InlineKeyboardButton("✏️ Изменить товар", callback_data="admin:edit_product"))
         return kb

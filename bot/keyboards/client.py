@@ -1,7 +1,6 @@
 from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 from bot.db.models.product import Product
-from bot.db.models.stickerpack import Stickerpack
 from bot.db.models.user import Language
 from bot.i18n.translations import t
 
@@ -101,15 +100,3 @@ class ClientKeyboards:
         kb.add(InlineKeyboardButton(t.get("btn_cancel_order", lang), callback_data="order_cancel"))
         return kb
 
-    @staticmethod
-    def stickerpack_choice(
-        packs: list[Stickerpack], lang: Language | None = None
-    ) -> InlineKeyboardMarkup:
-        kb = InlineKeyboardMarkup()
-        for p in packs:
-            kb.add(
-                InlineKeyboardButton(f"👀 {p.name}", url=p.telegram_link),
-                InlineKeyboardButton(t.get("btn_choose", lang), callback_data=f"stpack:{p.code}"),
-            )
-        kb.add(InlineKeyboardButton(t.get("btn_skip", lang), callback_data="stpack:skip"))
-        return kb

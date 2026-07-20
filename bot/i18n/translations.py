@@ -19,7 +19,6 @@ TRANSLATIONS: dict[Language, dict[str, str]] = {
         "delivery": "Доставка",
         "delivery_free": "бесплатно 🎁",
         "total": "Итого",
-        "bonus_available": "🎉 Вам доступен бонусный стикерпак!",
         "btn_buy": "🛒 Купить",
         "btn_back": "⬅️ Назад",
         "btn_cancel": "⬅️ Отмена",
@@ -33,7 +32,6 @@ TRANSLATIONS: dict[Language, dict[str, str]] = {
         "btn_skip": "Пропустить",
         "btn_confirm_order": "✅ Подтвердить заказ",
         "btn_cancel_order": "❌ Отменить",
-        "btn_choose": "Выбрать",
         "order_accepted_cash": (
             "✅ Заказ #{order_id} принят!\n\n"
             "💵 Оплата наличными при получении заказа на вокзале в Фрибурге."
@@ -59,7 +57,6 @@ TRANSLATIONS: dict[Language, dict[str, str]] = {
         "delivery": "Delivery",
         "delivery_free": "free 🎁",
         "total": "Total",
-        "bonus_available": "🎉 You unlocked a bonus stickerpack!",
         "btn_buy": "🛒 Buy",
         "btn_back": "⬅️ Back",
         "btn_cancel": "⬅️ Cancel",
@@ -73,7 +70,6 @@ TRANSLATIONS: dict[Language, dict[str, str]] = {
         "btn_skip": "Skip",
         "btn_confirm_order": "✅ Confirm order",
         "btn_cancel_order": "❌ Cancel",
-        "btn_choose": "Choose",
         "order_accepted_cash": (
             "✅ Order #{order_id} accepted!\n\n"
             "💵 Payment in cash on pickup at the Fribourg train station."
@@ -99,7 +95,6 @@ TRANSLATIONS: dict[Language, dict[str, str]] = {
         "delivery": "Lieferung",
         "delivery_free": "kostenlos 🎁",
         "total": "Gesamt",
-        "bonus_available": "🎉 Du hast ein Bonus-Stickerpack freigeschaltet!",
         "btn_buy": "🛒 Kaufen",
         "btn_back": "⬅️ Zurück",
         "btn_cancel": "⬅️ Abbrechen",
@@ -113,7 +108,6 @@ TRANSLATIONS: dict[Language, dict[str, str]] = {
         "btn_skip": "Überspringen",
         "btn_confirm_order": "✅ Bestellung bestätigen",
         "btn_cancel_order": "❌ Abbrechen",
-        "btn_choose": "Auswählen",
         "order_accepted_cash": (
             "✅ Bestellung #{order_id} angenommen!\n\n"
             "💵 Barzahlung bei Abholung am Bahnhof Freiburg."
@@ -139,7 +133,6 @@ TRANSLATIONS: dict[Language, dict[str, str]] = {
         "delivery": "Livraison",
         "delivery_free": "gratuit 🎁",
         "total": "Total",
-        "bonus_available": "🎉 Vous avez débloqué un pack d'autocollants bonus !",
         "btn_buy": "🛒 Acheter",
         "btn_back": "⬅️ Retour",
         "btn_cancel": "⬅️ Annuler",
@@ -153,7 +146,6 @@ TRANSLATIONS: dict[Language, dict[str, str]] = {
         "btn_skip": "Passer",
         "btn_confirm_order": "✅ Confirmer la commande",
         "btn_cancel_order": "❌ Annuler",
-        "btn_choose": "Choisir",
         "order_accepted_cash": (
             "✅ Commande #{order_id} acceptée !\n\n"
             "💵 Paiement en espèces à la remise de la commande à la gare de Fribourg."
