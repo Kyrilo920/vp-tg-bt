@@ -1,4 +1,5 @@
 import telebot
+from telebot.apihelper import ApiTelegramException
 from telebot.storage import StateMemoryStorage
 from telebot.custom_filters import StateFilter
 from telebot.types import CallbackQuery, Message
@@ -31,6 +32,15 @@ notifier = AdminNotifier(bot, ADMIN_IDS)
 
 
 # ---------- helpers ----------
+
+def safe_edit_message(**kwargs) -> None:
+    """edit_message_text, но не падает, если новый текст совпадает с текущим (Telegram 400)."""
+    try:
+        bot.edit_message_text(**kwargs)
+    except ApiTelegramException as e:
+        if "message is not modified" not in str(e):
+            raise
+
 
 def load_cart(user_id: int, chat_id: int) -> Cart:
     with bot.retrieve_data(user_id, chat_id) as data:
@@ -153,7 +163,7 @@ def set_language(callback: CallbackQuery) -> None:
 
 @bot.callback_query_handler(func=lambda c: c.data == "change_lang")
 def change_language(callback: CallbackQuery) -> None:
-    bot.edit_message_text(
+    safe_edit_message(
         chat_id=callback.message.chat.id,
         message_id=callback.message.message_id,
         text="Выберите язык / Choose language:",
@@ -186,7 +196,7 @@ def age_confirm_yes(callback: CallbackQuery) -> None:
 @bot.callback_query_handler(func=lambda c: c.data == "age:no")
 def age_confirm_no(callback: CallbackQuery) -> None:
     user = get_user(callback.from_user.id, callback.from_user.username)
-    bot.edit_message_text(
+    safe_edit_message(
         chat_id=callback.message.chat.id,
         message_id=callback.message.message_id,
         text=t.get("age_denied", user.language),
@@ -206,7 +216,7 @@ def show_catalog(callback: CallbackQuery) -> None:
     with database.session() as session:
         products = ProductRepository(session).get_all()
 
-    bot.edit_message_text(
+    safe_edit_message(
         chat_id=callback.message.chat.id,
         message_id=callback.message.message_id,
         text="Выберите вкус:",
@@ -236,7 +246,7 @@ def show_product(callback: CallbackQuery) -> None:
         f"{stock_line}"
     )
 
-    bot.edit_message_text(
+    safe_edit_message(
         chat_id=callback.message.chat.id,
         message_id=callback.message.message_id,
         text=text,
@@ -264,7 +274,7 @@ def choose_quantity(callback: CallbackQuery) -> None:
         bot.answer_callback_query(callback.id, "Нет в наличии", show_alert=True)
         return
 
-    bot.edit_message_text(
+    safe_edit_message(
         chat_id=callback.message.chat.id,
         message_id=callback.message.message_id,
         text=f"Сколько штук <b>{product.flavor}</b> добавить в корзину?",
@@ -302,7 +312,7 @@ def add_to_cart(callback: CallbackQuery) -> None:
     cart.add(product.id, product.flavor, product.price, qty)
     save_cart(callback.from_user.id, callback.message.chat.id, cart)
 
-    bot.edit_message_text(
+    safe_edit_message(
         chat_id=callback.message.chat.id,
         message_id=callback.message.message_id,
         text=render_cart_text(cart, user.language),
@@ -328,7 +338,7 @@ def show_cart(callback: CallbackQuery) -> None:
         else ClientKeyboards.empty_cart(user.language)
     )
 
-    bot.edit_message_text(
+    safe_edit_message(
         chat_id=callback.message.chat.id,
         message_id=callback.message.message_id,
         text=render_cart_text(cart, user.language),
@@ -343,7 +353,7 @@ def clear_cart(callback: CallbackQuery) -> None:
     user = get_user(callback.from_user.id, callback.from_user.username)
     cart = Cart()
     save_cart(callback.from_user.id, callback.message.chat.id, cart)
-    bot.edit_message_text(
+    safe_edit_message(
         chat_id=callback.message.chat.id,
         message_id=callback.message.message_id,
         text="🗑 Корзина очищена",
@@ -372,7 +382,7 @@ def checkout_start(callback: CallbackQuery) -> None:
             packs = StickerpackRepository(session).get_all()
 
         bot.set_state(callback.from_user.id, CheckoutStates.stickerpack, callback.message.chat.id)
-        bot.edit_message_text(
+        safe_edit_message(
             chat_id=callback.message.chat.id,
             message_id=callback.message.message_id,
             text=(
@@ -387,7 +397,7 @@ def checkout_start(callback: CallbackQuery) -> None:
 
     # иначе сразу переходим к выбору доставки
     bot.set_state(callback.from_user.id, CheckoutStates.delivery_type, callback.message.chat.id)
-    bot.edit_message_text(
+    safe_edit_message(
         chat_id=callback.message.chat.id,
         message_id=callback.message.message_id,
         text="Как получите заказ?",
@@ -405,7 +415,7 @@ def choose_stickerpack(callback: CallbackQuery) -> None:
         data["stickerpack"] = None if code == "skip" else code
 
     bot.set_state(callback.from_user.id, CheckoutStates.delivery_type, callback.message.chat.id)
-    bot.edit_message_text(
+    safe_edit_message(
         chat_id=callback.message.chat.id,
         message_id=callback.message.message_id,
         text="Как получите заказ?",
@@ -614,7 +624,7 @@ def confirm_order(callback: CallbackQuery) -> None:
     save_cart(user_id, chat_id, Cart())
     bot.delete_state(user_id, chat_id)
 
-    bot.edit_message_text(
+    safe_edit_message(
         chat_id=chat_id,
         message_id=callback.message.message_id,
         text=t.get("order_accepted_cash", user.language).format(order_id=order_id),
@@ -627,7 +637,7 @@ def confirm_order(callback: CallbackQuery) -> None:
 def cancel_order(callback: CallbackQuery) -> None:
     user = get_user(callback.from_user.id, callback.from_user.username)
     bot.delete_state(callback.from_user.id, callback.message.chat.id)
-    bot.edit_message_text(
+    safe_edit_message(
         chat_id=callback.message.chat.id,
         message_id=callback.message.message_id,
         text="Заказ отменён. Корзина сохранена.",
@@ -655,7 +665,7 @@ def admin_denied(message: Message) -> None:
 
 @bot.callback_query_handler(func=lambda c: c.data == "admin:panel", is_admin=True)
 def admin_panel_back(callback: CallbackQuery) -> None:
-    bot.edit_message_text(
+    safe_edit_message(
         chat_id=callback.message.chat.id,
         message_id=callback.message.message_id,
         text="👑 <b>Админ-панель</b>",
@@ -680,7 +690,7 @@ def admin_finance(callback: CallbackQuery) -> None:
         f"Сумма после комиссии: <b>{summary['after_commission']} CHF</b>\n\n"
         f"Средний чек: <b>{summary['avg_check']:.2f} CHF</b>"
     )
-    bot.edit_message_text(
+    safe_edit_message(
         chat_id=callback.message.chat.id,
         message_id=callback.message.message_id,
         text=text,
@@ -700,7 +710,7 @@ def admin_stock(callback: CallbackQuery) -> None:
         emoji = "✅" if p.stock > 0 else "❌"
         lines.append(f"{emoji} {p.flavor}: {p.stock} шт")
 
-    bot.edit_message_text(
+    safe_edit_message(
         chat_id=callback.message.chat.id,
         message_id=callback.message.message_id,
         text="\n".join(lines),
@@ -727,7 +737,7 @@ def admin_flavors(callback: CallbackQuery) -> None:
         lines.append(f"\n🏆 Самый популярный: <b>{top_flavor}</b>")
         text = "\n".join(lines)
 
-    bot.edit_message_text(
+    safe_edit_message(
         chat_id=callback.message.chat.id,
         message_id=callback.message.message_id,
         text=text,
@@ -754,7 +764,7 @@ def admin_stickers(callback: CallbackQuery) -> None:
         lines.append(f"\n🏆 Самый популярный: <b>{top_pack}</b>")
         text = "\n".join(lines)
 
-    bot.edit_message_text(
+    safe_edit_message(
         chat_id=callback.message.chat.id,
         message_id=callback.message.message_id,
         text=text,
@@ -770,7 +780,7 @@ def admin_orders(callback: CallbackQuery) -> None:
         orders = OrderRepository(session).list_recent(limit=10)
 
     if not orders:
-        bot.edit_message_text(
+        safe_edit_message(
             chat_id=callback.message.chat.id,
             message_id=callback.message.message_id,
             text="📋 Заказов пока нет.",
@@ -779,7 +789,7 @@ def admin_orders(callback: CallbackQuery) -> None:
         bot.answer_callback_query(callback.id)
         return
 
-    bot.edit_message_text(
+    safe_edit_message(
         chat_id=callback.message.chat.id,
         message_id=callback.message.message_id,
         text="📋 <b>Последние заказы:</b>",
@@ -822,7 +832,7 @@ def admin_order_detail(callback: CallbackQuery) -> None:
         for item in order.items:
             lines.append(f"{item.flavor} — {item.quantity} × {item.price_per_item} CHF")
 
-    bot.edit_message_text(
+    safe_edit_message(
         chat_id=callback.message.chat.id,
         message_id=callback.message.message_id,
         text="\n".join(lines),
@@ -835,7 +845,7 @@ def admin_order_detail(callback: CallbackQuery) -> None:
 @bot.callback_query_handler(func=lambda c: c.data.startswith("admin:status:"), is_admin=True)
 def admin_status_menu(callback: CallbackQuery) -> None:
     order_id = int(callback.data.split(":")[2])
-    bot.edit_message_text(
+    safe_edit_message(
         chat_id=callback.message.chat.id,
         message_id=callback.message.message_id,
         text="Выберите новый статус:",
@@ -925,7 +935,7 @@ def admin_edit_product_list(callback: CallbackQuery) -> None:
     with database.session() as session:
         products = ProductRepository(session).get_all()
 
-    bot.edit_message_text(
+    safe_edit_message(
         chat_id=callback.message.chat.id,
         message_id=callback.message.message_id,
         text="✏️ Выберите товар для редактирования:",
@@ -951,7 +961,7 @@ def admin_product_card(callback: CallbackQuery) -> None:
             f"Описание: {product.description}"
         )
 
-    bot.edit_message_text(
+    safe_edit_message(
         chat_id=callback.message.chat.id,
         message_id=callback.message.message_id,
         text=text,
