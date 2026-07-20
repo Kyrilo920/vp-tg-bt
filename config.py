@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     DATABASE_URL: str
     ADMIN_ID: int
     ADMIN_ID_2: int
+    ADMIN_ID_3: int | None = None
 
 
 settings = Settings()

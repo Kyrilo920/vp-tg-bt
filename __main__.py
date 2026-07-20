@@ -23,7 +23,9 @@ from bot.states.cart_states import AdminStates, CartStates, CheckoutStates
 from config import settings
 
 
-ADMIN_IDS = [settings.ADMIN_ID, settings.ADMIN_ID_2]
+ADMIN_IDS = [
+    aid for aid in (settings.ADMIN_ID, settings.ADMIN_ID_2, settings.ADMIN_ID_3) if aid is not None
+]
 
 state_storage = StateMemoryStorage()
 bot = telebot.TeleBot(token=settings.BOT_TOKEN, state_storage=state_storage)
