@@ -6,6 +6,8 @@ class Settings(BaseSettings):
 
     BOT_TOKEN: str
     DATABASE_URL: str
+    ADMIN_ID: int
+    ADMIN_ID_2: int
 
 
 settings = Settings()
