@@ -33,12 +33,28 @@ notifier = AdminNotifier(bot, ADMIN_IDS)
 # ---------- helpers ----------
 
 def safe_edit_message(**kwargs) -> None:
-    """edit_message_text, но не падает, если новый текст совпадает с текущим (Telegram 400)."""
+    """edit_message_text, но не падает, если новый текст совпадает с текущим (Telegram 400),
+    и переживает переход с фото-сообщения на текстовое (пересоздаёт сообщение)."""
     try:
         bot.edit_message_text(**kwargs)
     except ApiTelegramException as e:
-        if "message is not modified" not in str(e):
-            raise
+        if "message is not modified" in str(e):
+            return
+        if "there is no text in the message to edit" in str(e):
+            chat_id = kwargs["chat_id"]
+            message_id = kwargs["message_id"]
+            try:
+                bot.delete_message(chat_id, message_id)
+            except Exception:
+                pass
+            bot.send_message(
+                chat_id,
+                kwargs["text"],
+                parse_mode=kwargs.get("parse_mode"),
+                reply_markup=kwargs.get("reply_markup"),
+            )
+            return
+        raise
 
 
 def load_cart(user_id: int, chat_id: int) -> Cart:
@@ -242,13 +258,27 @@ def show_product(callback: CallbackQuery) -> None:
         f"{stock_line}"
     )
 
-    safe_edit_message(
-        chat_id=callback.message.chat.id,
-        message_id=callback.message.message_id,
-        text=text,
-        parse_mode="HTML",
-        reply_markup=ClientKeyboards.product_card(product.id, user.language),
-    )
+    markup = ClientKeyboards.product_card(product.id, user.language)
+    if product.photo_file_id:
+        try:
+            bot.delete_message(callback.message.chat.id, callback.message.message_id)
+        except Exception:
+            pass
+        bot.send_photo(
+            callback.message.chat.id,
+            photo=product.photo_file_id,
+            caption=text,
+            parse_mode="HTML",
+            reply_markup=markup,
+        )
+    else:
+        safe_edit_message(
+            chat_id=callback.message.chat.id,
+            message_id=callback.message.message_id,
+            text=text,
+            parse_mode="HTML",
+            reply_markup=markup,
+        )
     bot.answer_callback_query(callback.id)
 
 
@@ -903,6 +933,7 @@ def admin_start_edit(callback: CallbackQuery) -> None:
         "price": ("Введите новую цену в CHF (например: 22.00):", AdminStates.edit_price),
         "stock": ("Введите новый остаток (целое число):", AdminStates.edit_stock),
         "desc": ("Введите новое описание:", AdminStates.edit_desc),
+        "photo": ("Пришлите фото товара:", AdminStates.edit_photo),
     }
     prompt, state = prompts[field]
     bot.set_state(callback.from_user.id, state, callback.message.chat.id)
@@ -976,6 +1007,28 @@ def admin_apply_desc(message: Message) -> None:
 
     bot.delete_state(message.from_user.id, message.chat.id)
     bot.send_message(message.chat.id, "✅ Описание обновлено")
+
+
+@bot.message_handler(state=AdminStates.edit_photo, is_admin=True, content_types=["photo"])
+def admin_apply_photo(message: Message) -> None:
+    file_id = message.photo[-1].file_id
+
+    with bot.retrieve_data(message.from_user.id, message.chat.id) as data:
+        product_id = data.get("edit_product_id")
+
+    with database.session() as session:
+        product = ProductRepository(session).get_by_id(product_id)
+        if product is not None:
+            product.photo_file_id = file_id
+            session.commit()
+
+    bot.delete_state(message.from_user.id, message.chat.id)
+    bot.send_message(message.chat.id, "✅ Фото обновлено")
+
+
+@bot.message_handler(state=AdminStates.edit_photo, is_admin=True)
+def admin_apply_photo_wrong_type(message: Message) -> None:
+    bot.send_message(message.chat.id, "Пришлите именно фото (не файл и не текст).")
 
 
 # ---------- полная статистика по заказам ----------

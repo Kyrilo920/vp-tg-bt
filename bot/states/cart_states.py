@@ -21,4 +21,5 @@ class AdminStates(StatesGroup):
     edit_price = State()
     edit_stock = State()
     edit_desc = State()
+    edit_photo = State()
     set_meet_time = State()

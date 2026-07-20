@@ -69,5 +69,6 @@ class AdminKeyboards:
             InlineKeyboardButton("📦 Остаток", callback_data=f"admin:pedit:stock:{product_id}"),
         )
         kb.add(InlineKeyboardButton("📝 Описание", callback_data=f"admin:pedit:desc:{product_id}"))
+        kb.add(InlineKeyboardButton("🖼 Фото", callback_data=f"admin:pedit:photo:{product_id}"))
         kb.add(InlineKeyboardButton("⬅️ К списку", callback_data="admin:edit_product"))
         return kb
