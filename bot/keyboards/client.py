@@ -12,6 +12,7 @@ class ClientKeyboards:
         kb.add(InlineKeyboardButton(t.get("menu_catalog", lang), callback_data="catalog"))
         kb.add(InlineKeyboardButton(t.get("menu_cart", lang), callback_data="cart"))
         kb.add(InlineKeyboardButton(t.get("menu_change_lang", lang), callback_data="change_lang"))
+        kb.add(InlineKeyboardButton(t.get("menu_support", lang), url="https://t.me/hellkiss777"))
         return kb
 
     @staticmethod

@@ -3,7 +3,7 @@ from bot.db.models.user import Language
 
 TRANSLATIONS: dict[Language, dict[str, str]] = {
     Language.RU: {
-        "welcome": "Привет, {name}!\n\nЯ бот-магазин UZY 15K. Открой каталог, чтобы посмотреть вкусы.",
+        "welcome": "Привет, {name}!\n\nЯ бот-магазин UZY 15K. Открой каталог, чтобы посмотреть вкусы.\n\nЕсли возникли какие-то вопросы — пишите сюда: @hellkiss777",
         "choose_language": "Выберите язык:",
         "age_confirm_title": "Подтвердите, что вам есть 18 лет или больше.",
         "age_yes": "✅ Да, мне 18+",
@@ -13,6 +13,7 @@ TRANSLATIONS: dict[Language, dict[str, str]] = {
         "menu_catalog": "🛒 Каталог",
         "menu_cart": "🧺 Корзина",
         "menu_change_lang": "🌐 Сменить язык",
+        "menu_support": "🆘 Поддержка",
         "cart_empty": "🧺 Корзина пуста",
         "your_cart": "🧺 <b>Ваша корзина:</b>",
         "total_items": "Всего товаров",
@@ -42,7 +43,7 @@ TRANSLATIONS: dict[Language, dict[str, str]] = {
         ),
     },
     Language.EN: {
-        "welcome": "Hi, {name}!\n\nI'm the UZY 15K shop bot. Open the catalog to see flavors.",
+        "welcome": "Hi, {name}!\n\nI'm the UZY 15K shop bot. Open the catalog to see flavors.\n\nQuestions? Message us here: @hellkiss777",
         "choose_language": "Choose language:",
         "age_confirm_title": "Please confirm that you are 18 or older.",
         "age_yes": "✅ Yes, I'm 18+",
@@ -52,6 +53,7 @@ TRANSLATIONS: dict[Language, dict[str, str]] = {
         "menu_catalog": "🛒 Catalog",
         "menu_cart": "🧺 Cart",
         "menu_change_lang": "🌐 Change language",
+        "menu_support": "🆘 Support",
         "cart_empty": "🧺 Your cart is empty",
         "your_cart": "🧺 <b>Your cart:</b>",
         "total_items": "Total items",
@@ -81,7 +83,7 @@ TRANSLATIONS: dict[Language, dict[str, str]] = {
         ),
     },
     Language.DE: {
-        "welcome": "Hallo, {name}!\n\nIch bin der UZY 15K Shop-Bot. Öffne den Katalog, um die Geschmacksrichtungen zu sehen.",
+        "welcome": "Hallo, {name}!\n\nIch bin der UZY 15K Shop-Bot. Öffne den Katalog, um die Geschmacksrichtungen zu sehen.\n\nBei Fragen schreib uns hier: @hellkiss777",
         "choose_language": "Sprache wählen:",
         "age_confirm_title": "Bitte bestätige, dass du 18 Jahre oder älter bist.",
         "age_yes": "✅ Ja, ich bin 18+",
@@ -91,6 +93,7 @@ TRANSLATIONS: dict[Language, dict[str, str]] = {
         "menu_catalog": "🛒 Katalog",
         "menu_cart": "🧺 Warenkorb",
         "menu_change_lang": "🌐 Sprache ändern",
+        "menu_support": "🆘 Support",
         "cart_empty": "🧺 Der Warenkorb ist leer",
         "your_cart": "🧺 <b>Dein Warenkorb:</b>",
         "total_items": "Artikel insgesamt",
@@ -120,7 +123,7 @@ TRANSLATIONS: dict[Language, dict[str, str]] = {
         ),
     },
     Language.FR: {
-        "welcome": "Salut, {name}!\n\nJe suis le bot boutique UZY 15K. Ouvre le catalogue pour voir les saveurs.",
+        "welcome": "Salut, {name}!\n\nJe suis le bot boutique UZY 15K. Ouvre le catalogue pour voir les saveurs.\n\nDes questions ? Écrivez-nous ici : @hellkiss777",
         "choose_language": "Choisissez la langue:",
         "age_confirm_title": "Veuillez confirmer que vous avez 18 ans ou plus.",
         "age_yes": "✅ Oui, j'ai 18+",
@@ -130,6 +133,7 @@ TRANSLATIONS: dict[Language, dict[str, str]] = {
         "menu_catalog": "🛒 Catalogue",
         "menu_cart": "🧺 Panier",
         "menu_change_lang": "🌐 Changer de langue",
+        "menu_support": "🆘 Assistance",
         "cart_empty": "🧺 Votre panier est vide",
         "your_cart": "🧺 <b>Votre panier :</b>",
         "total_items": "Total articles",
