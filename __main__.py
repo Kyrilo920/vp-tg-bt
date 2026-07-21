@@ -972,9 +972,12 @@ def admin_apply_price(message: Message) -> None:
 
     with database.session() as session:
         product = ProductRepository(session).get_by_id(product_id)
-        if product is not None:
-            product.price = new_price
-            session.commit()
+        if product is None:
+            bot.delete_state(message.from_user.id, message.chat.id)
+            bot.send_message(message.chat.id, "❌ Товар не найден, начните заново.")
+            return
+        product.price = new_price
+        session.commit()
 
     bot.delete_state(message.from_user.id, message.chat.id)
     bot.send_message(message.chat.id, f"✅ Цена обновлена: {new_price} CHF")
@@ -995,9 +998,12 @@ def admin_apply_stock(message: Message) -> None:
 
     with database.session() as session:
         product = ProductRepository(session).get_by_id(product_id)
-        if product is not None:
-            product.stock = new_stock
-            session.commit()
+        if product is None:
+            bot.delete_state(message.from_user.id, message.chat.id)
+            bot.send_message(message.chat.id, "❌ Товар не найден, начните заново.")
+            return
+        product.stock = new_stock
+        session.commit()
 
     bot.delete_state(message.from_user.id, message.chat.id)
     bot.send_message(message.chat.id, f"✅ Остаток обновлён: {new_stock} шт")
@@ -1015,9 +1021,12 @@ def admin_apply_desc(message: Message) -> None:
 
     with database.session() as session:
         product = ProductRepository(session).get_by_id(product_id)
-        if product is not None:
-            product.description = new_desc
-            session.commit()
+        if product is None:
+            bot.delete_state(message.from_user.id, message.chat.id)
+            bot.send_message(message.chat.id, "❌ Товар не найден, начните заново.")
+            return
+        product.description = new_desc
+        session.commit()
 
     bot.delete_state(message.from_user.id, message.chat.id)
     bot.send_message(message.chat.id, "✅ Описание обновлено")
@@ -1032,9 +1041,12 @@ def admin_apply_photo(message: Message) -> None:
 
     with database.session() as session:
         product = ProductRepository(session).get_by_id(product_id)
-        if product is not None:
-            product.photo_file_id = file_id
-            session.commit()
+        if product is None:
+            bot.delete_state(message.from_user.id, message.chat.id)
+            bot.send_message(message.chat.id, "❌ Товар не найден, начните заново.")
+            return
+        product.photo_file_id = file_id
+        session.commit()
 
     bot.delete_state(message.from_user.id, message.chat.id)
     bot.send_message(message.chat.id, "✅ Фото обновлено")
