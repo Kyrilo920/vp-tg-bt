@@ -851,10 +851,10 @@ def admin_set_status(callback: CallbackQuery) -> None:
 def admin_meet_time_start(callback: CallbackQuery) -> None:
     order_id = int(callback.data.split(":")[2])
 
+    bot.set_state(callback.from_user.id, AdminStates.set_meet_time, callback.message.chat.id)
     with bot.retrieve_data(callback.from_user.id, callback.message.chat.id) as data:
         data["meet_time_order_id"] = order_id
 
-    bot.set_state(callback.from_user.id, AdminStates.set_meet_time, callback.message.chat.id)
     bot.send_message(callback.message.chat.id, "Введите время и место встречи для отправки клиенту:")
     bot.answer_callback_query(callback.id)
 
@@ -940,9 +940,6 @@ def admin_start_edit(callback: CallbackQuery) -> None:
     _, _, field, product_id_str = callback.data.split(":")
     product_id = int(product_id_str)
 
-    with bot.retrieve_data(callback.from_user.id, callback.message.chat.id) as data:
-        data["edit_product_id"] = product_id
-
     prompts = {
         "price": ("Введите новую цену в CHF (например: 22.00):", AdminStates.edit_price),
         "stock": ("Введите новый остаток (целое число):", AdminStates.edit_stock),
@@ -950,7 +947,13 @@ def admin_start_edit(callback: CallbackQuery) -> None:
         "photo": ("Пришлите фото товара:", AdminStates.edit_photo),
     }
     prompt, state = prompts[field]
+
+    # set_state должен идти раньше retrieve_data: если для пользователя ещё
+    # нет записи состояния, MemoryStorage.save() молча отбрасывает запись
     bot.set_state(callback.from_user.id, state, callback.message.chat.id)
+    with bot.retrieve_data(callback.from_user.id, callback.message.chat.id) as data:
+        data["edit_product_id"] = product_id
+
     bot.send_message(callback.message.chat.id, prompt)
     bot.answer_callback_query(callback.id)
 
