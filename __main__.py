@@ -522,8 +522,6 @@ def skip_comment(callback: CallbackQuery) -> None:
 
 def show_confirmation(chat_id: int, user_id: int, lang: Language | None = None) -> None:
     cart = load_cart(user_id, chat_id)
-    delivery = DeliveryCalculator.calculate(cart.total_quantity)
-    total = cart.items_sum + delivery
 
     with bot.retrieve_data(user_id, chat_id) as data:
         dtype = data.get("delivery_type")
@@ -534,6 +532,9 @@ def show_confirmation(chat_id: int, user_id: int, lang: Language | None = None) 
         zip_code = data.get("zip_code")
         pickup_time = data.get("pickup_time")
         comment = data.get("comment")
+
+    delivery = DeliveryCalculator.calculate(cart.total_quantity, dtype)
+    total = cart.items_sum + delivery
 
     lines = ["📋 <b>Проверьте заказ:</b>\n"]
     for item in cart.items.values():

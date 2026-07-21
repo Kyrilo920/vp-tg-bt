@@ -36,7 +36,7 @@ class OrderService:
         if cart.is_empty:
             raise ValueError("Cart is empty")
 
-        delivery_price = DeliveryCalculator.calculate(cart.total_quantity)
+        delivery_price = DeliveryCalculator.calculate(cart.total_quantity, delivery_type)
         items_sum = cart.items_sum
         total_sum = items_sum + delivery_price
 
