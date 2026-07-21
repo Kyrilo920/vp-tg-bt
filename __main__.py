@@ -27,6 +27,8 @@ ADMIN_IDS = [
     aid for aid in (settings.ADMIN_ID, settings.ADMIN_ID_2, settings.ADMIN_ID_3) if aid is not None
 ]
 
+PICKUP_ADDRESS_LINK = "https://maps.app.goo.gl/aSMmisUE7nFm83uy6?g_st=ic"
+
 state_storage = StateMemoryStorage()
 bot = telebot.TeleBot(token=settings.BOT_TOKEN, state_storage=state_storage)
 notifier = AdminNotifier(bot, ADMIN_IDS)
@@ -451,8 +453,13 @@ def get_phone(message: Message) -> None:
         bot.set_state(message.from_user.id, CheckoutStates.address, message.chat.id)
         bot.send_message(message.chat.id, "Адрес доставки (улица, дом)?")
     else:
+        user = get_user(message.from_user.id, message.from_user.username)
         bot.set_state(message.from_user.id, CheckoutStates.pickup_time, message.chat.id)
-        bot.send_message(message.chat.id, "Когда вам удобно забрать заказ?")
+        bot.send_message(
+            message.chat.id,
+            t.get("pickup_location", user.language).format(link=PICKUP_ADDRESS_LINK)
+            + "\n\nКогда вам удобно забрать заказ?",
+        )
 
 
 @bot.message_handler(state=CheckoutStates.address)
@@ -606,10 +613,14 @@ def confirm_order(callback: CallbackQuery) -> None:
     save_cart(user_id, chat_id, Cart())
     bot.delete_state(user_id, chat_id)
 
+    text = t.get("order_accepted_cash", user.language).format(order_id=order_id)
+    if dtype == DeliveryType.PICKUP:
+        text += "\n\n" + t.get("pickup_location", user.language).format(link=PICKUP_ADDRESS_LINK)
+
     safe_edit_message(
         chat_id=chat_id,
         message_id=callback.message.message_id,
-        text=t.get("order_accepted_cash", user.language).format(order_id=order_id),
+        text=text,
         reply_markup=ClientKeyboards.main_menu(user.language),
     )
     bot.answer_callback_query(callback.id, "Заказ создан")
