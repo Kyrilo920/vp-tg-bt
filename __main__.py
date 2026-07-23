@@ -89,6 +89,7 @@ def render_cart_text(cart: Cart, lang: Language | None = None) -> str:
     lines.append(f"{t.get('items_sum', lang)}: <b>{cart.items_sum} CHF</b>")
     lines.append(f"{t.get('delivery', lang)}: <b>{delivery_str}</b>")
     lines.append(f"{t.get('total', lang)}: <b>{total} CHF</b>")
+    lines.append(f"\n{t.get('pickup_free_note', lang)}")
 
     return "\n".join(lines)
 
